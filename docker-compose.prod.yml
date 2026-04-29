@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: nova_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-nova_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-nova_prod}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - nova_network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER:-nova_user} -d ${DB_NAME:-nova_prod}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: nova_backend
+    restart: always
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-nova_user}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-nova_prod}?schema=public
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - nova_network
+    volumes:
+      - uploads_data:/app/public/uploads
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nova_frontend
+    restart: always
+    env_file: ./frontend/.env.local
+    environment:
+      NODE_ENV: production
+    depends_on:
+      - backend
+    networks:
+      - nova_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: nova_nginx
+    restart: always
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - nova_network
+
+volumes:
+  postgres_data:
+  uploads_data:
+
+networks:
+  nova_network:
+    driver: bridge

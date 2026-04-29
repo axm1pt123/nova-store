@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@layer base {
+  body {
+    @apply bg-nova-bg text-brand antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200;
+  }
+  .btn-primary {
+    @apply btn bg-brand text-white hover:bg-gray-800 disabled:opacity-50;
+  }
+  .btn-outline {
+    @apply btn border border-gray-300 bg-white text-brand hover:bg-gray-50 disabled:opacity-50;
+  }
+  .btn-secondary {
+    @apply btn bg-white border border-gray-300 hover:bg-gray-100;
+  }
+  .input {
+    @apply block w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-brand placeholder-gray-400 focus:border-nova-blue focus:outline-none focus:ring-2 focus:ring-nova-blue/20 transition-all;
+  }
+  .card {
+    @apply rounded-2xl bg-white shadow-sm border border-gray-100;
+  }
+  .nova-badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold;
+  }
+}
