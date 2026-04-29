@@ -8,6 +8,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   AuthenticatedUser,
   CurrentUser,
@@ -30,6 +31,8 @@ import { RegisterUserUseCase } from '../../application/use-cases/register-user.u
 import { UpdateUserProfileUseCase } from '../../application/use-cases/update-user-profile.use-case';
 import { PrismaService } from '@shared/infrastructure/database/prisma.service';
 
+@ApiTags('Auth & Usuarios')
+@ApiBearerAuth('JWT')
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
@@ -41,6 +44,7 @@ export class UsersController {
     private readonly prisma: PrismaService,
   ) {}
 
+  @ApiOperation({ summary: 'Registrar nuevo usuario' })
   @Public()
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
@@ -48,6 +52,7 @@ export class UsersController {
     return this.registerUser.execute(dto);
   }
 
+  @ApiOperation({ summary: 'Iniciar sesión y obtener JWT' })
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -55,11 +60,13 @@ export class UsersController {
     return this.loginUser.execute(dto);
   }
 
+  @ApiOperation({ summary: 'Obtener perfil del usuario autenticado' })
   @Get('me')
   me(@CurrentUser() user: AuthenticatedUser): Promise<UserResponseDto> {
     return this.getProfile.execute(user.userId);
   }
 
+  @ApiOperation({ summary: 'Actualizar perfil del usuario autenticado' })
   @Patch('me')
   updateMe(
     @CurrentUser() user: AuthenticatedUser,
@@ -68,6 +75,7 @@ export class UsersController {
     return this.updateProfile.execute(user.userId, dto);
   }
 
+  @ApiOperation({ summary: '[ADMIN] Listar todos los usuarios' })
   @Roles('ADMIN')
   @Get('admin/list')
   async listAll() {
@@ -84,6 +92,7 @@ export class UsersController {
     }));
   }
 
+  @ApiOperation({ summary: '[ADMIN] Crear usuario manualmente' })
   @Roles('ADMIN')
   @Post('admin/create')
   @HttpCode(HttpStatus.CREATED)

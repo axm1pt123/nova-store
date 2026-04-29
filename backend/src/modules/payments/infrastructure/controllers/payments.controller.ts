@@ -8,6 +8,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   AuthenticatedUser,
   CurrentUser,
@@ -19,6 +20,8 @@ import {
   InitiatePaymentUseCase,
 } from '../../application/use-cases/payment.use-cases';
 
+@ApiTags('Pagos')
+@ApiBearerAuth('JWT')
 @Controller('payments')
 @UseGuards(JwtAuthGuard)
 export class PaymentsController {
@@ -27,12 +30,14 @@ export class PaymentsController {
     private readonly confirm: ConfirmPaymentUseCase,
   ) {}
 
+  @ApiOperation({ summary: 'Iniciar pago de una orden' })
   @Post('initiate')
   @HttpCode(HttpStatus.CREATED)
   start(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreatePaymentDto) {
     return this.initiate.execute(user.userId, dto);
   }
 
+  @ApiOperation({ summary: 'Confirmar pago (simulated/webhook)' })
   @Post(':id/confirm')
   confirmPayment(@Param('id', ParseUUIDPipe) id: string) {
     return this.confirm.execute(id);

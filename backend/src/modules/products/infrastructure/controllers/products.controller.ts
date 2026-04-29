@@ -12,6 +12,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from '@shared/application/decorators/public.decorator';
 import { Roles } from '@shared/application/decorators/roles.decorator';
 import { JwtAuthGuard } from '@shared/application/guards/jwt-auth.guard';
@@ -35,6 +36,8 @@ import {
   UpdateProductUseCase,
 } from '../../application/use-cases/product.use-cases';
 
+@ApiTags('Productos')
+@ApiBearerAuth('JWT')
 @Controller('products')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ProductsController {
@@ -46,18 +49,21 @@ export class ProductsController {
     private readonly listProducts: ListProductsUseCase,
   ) {}
 
+  @ApiOperation({ summary: 'Listar productos con filtros y paginación' })
   @Public()
   @Get()
   list(@Query() query: ListProductsQueryDto) {
     return this.listProducts.execute(query);
   }
 
+  @ApiOperation({ summary: 'Obtener producto por ID' })
   @Public()
   @Get(':id')
   getById(@Param('id', ParseUUIDPipe) id: string) {
     return this.getProduct.execute(id);
   }
 
+  @ApiOperation({ summary: '[ADMIN] Crear producto' })
   @Roles('ADMIN')
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -65,12 +71,14 @@ export class ProductsController {
     return this.createProduct.execute(dto);
   }
 
+  @ApiOperation({ summary: '[ADMIN] Actualizar producto' })
   @Roles('ADMIN')
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateProductDto) {
     return this.updateProduct.execute(id, dto);
   }
 
+  @ApiOperation({ summary: '[ADMIN] Eliminar producto' })
   @Roles('ADMIN')
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -79,6 +87,8 @@ export class ProductsController {
   }
 }
 
+@ApiTags('Categorías')
+@ApiBearerAuth('JWT')
 @Controller('categories')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class CategoriesController {
@@ -88,12 +98,14 @@ export class CategoriesController {
     private readonly listCategories: ListCategoriesUseCase,
   ) {}
 
+  @ApiOperation({ summary: 'Listar todas las categorías' })
   @Public()
   @Get()
   list() {
     return this.listCategories.execute();
   }
 
+  @ApiOperation({ summary: '[ADMIN] Crear categoría' })
   @Roles('ADMIN')
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -101,6 +113,7 @@ export class CategoriesController {
     return this.createCategory.execute(dto);
   }
 
+  @ApiOperation({ summary: '[ADMIN] Eliminar categoría' })
   @Roles('ADMIN')
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)

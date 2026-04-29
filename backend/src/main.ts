@@ -3,6 +3,7 @@ import { NestFactory, Reflector } from '@nestjs/core';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const compression = require('compression');
 import helmet from 'helmet';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from '@shared/application/filters/global-exception.filter';
 import { JwtAuthGuard } from '@shared/application/guards/jwt-auth.guard';
@@ -85,6 +86,36 @@ async function bootstrap(): Promise<void> {
   app.useGlobalGuards(new JwtAuthGuard(reflector));
 
   const port = parseInt(process.env.PORT ?? '3001', 10);
+
+  if (!isProd) {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('NOVA Store API')
+      .setDescription('API REST del e-commerce NOVA Store — Clean Architecture con NestJS y Prisma')
+      .setVersion('1.0')
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'JWT')
+      .addTag('Auth & Usuarios', 'Registro, login y perfil de usuario')
+      .addTag('Productos', 'Catálogo de productos')
+      .addTag('Categorías', 'Categorías de productos')
+      .addTag('Carrito', 'Gestión del carrito de compras')
+      .addTag('Órdenes', 'Checkout y seguimiento de órdenes')
+      .addTag('Pagos', 'Procesamiento de pagos')
+      .addTag('Reportes', 'Reportes de ventas y métricas')
+      .addTag('Upload', 'Subida de imágenes')
+      .build();
+
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup('api/docs', app, document, {
+      swaggerOptions: {
+        persistAuthorization: true,
+        tagsSorter: 'alpha',
+        operationsSorter: 'alpha',
+      },
+      customSiteTitle: 'NOVA Store — API Docs',
+    });
+
+    logger.log(`📚 Swagger disponible en http://localhost:${port}/api/docs`);
+  }
+
   await app.listen(port, '0.0.0.0');
   logger.log(`🚀 Server running on http://0.0.0.0:${port}/${apiPrefix} [${isProd ? 'PRODUCTION' : 'DEVELOPMENT'}]`);
 }

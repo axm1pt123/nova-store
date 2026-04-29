@@ -7,6 +7,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { memoryStorage } from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import { Roles } from '@shared/application/decorators/roles.decorator';
@@ -19,10 +20,14 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+@ApiTags('Upload')
+@ApiBearerAuth('JWT')
 @Controller('upload')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('ADMIN')
 export class UploadController {
+  @ApiOperation({ summary: '[ADMIN] Subir imagen de producto a Cloudinary' })
+  @ApiConsumes('multipart/form-data')
   @Post('image')
   @UseInterceptors(
     FileInterceptor('file', {

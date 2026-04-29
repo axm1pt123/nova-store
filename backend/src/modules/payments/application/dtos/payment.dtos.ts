@@ -1,7 +1,9 @@
 import { IsUUID } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 import { Payment } from '../../domain/entities/payment.entity';
 
 export class CreatePaymentDto {
+  @ApiProperty({ example: 'uuid-de-la-orden' })
   @IsUUID() orderId!: string;
 }
 

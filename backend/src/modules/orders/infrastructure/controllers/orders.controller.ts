@@ -11,6 +11,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   AuthenticatedUser,
   CurrentUser,
@@ -30,6 +31,8 @@ import {
   UpdateOrderStatusUseCase,
 } from '../../application/use-cases/order.use-cases';
 
+@ApiTags('Órdenes')
+@ApiBearerAuth('JWT')
 @Controller('orders')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class OrdersController {
@@ -41,17 +44,20 @@ export class OrdersController {
     private readonly listAll: ListAllOrdersUseCase,
   ) {}
 
+  @ApiOperation({ summary: 'Crear orden desde el carrito (checkout)' })
   @Post('checkout')
   @HttpCode(HttpStatus.CREATED)
   checkout(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateOrderDto) {
     return this.createOrder.execute(user.userId, dto);
   }
 
+  @ApiOperation({ summary: 'Listar mis órdenes' })
   @Get('my')
   myOrders(@CurrentUser() user: AuthenticatedUser) {
     return this.getMyOrders.execute(user.userId);
   }
 
+  @ApiOperation({ summary: 'Obtener detalle de una orden' })
   @Get(':id')
   getById(
     @CurrentUser() user: AuthenticatedUser,
@@ -60,6 +66,7 @@ export class OrdersController {
     return this.getOrder.execute(id, user.userId, user.role);
   }
 
+  @ApiOperation({ summary: '[ADMIN] Listar todas las órdenes' })
   @Roles('ADMIN')
   @Get()
   listAllOrders(@Query() query: { skip?: string; take?: string; status?: string }) {
@@ -72,6 +79,7 @@ export class OrdersController {
     );
   }
 
+  @ApiOperation({ summary: '[ADMIN] Cambiar estado de una orden' })
   @Roles('ADMIN')
   @Patch(':id/status')
   changeStatus(

@@ -1,12 +1,17 @@
 import { IsInt, IsUUID, Min } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 import { Cart } from '../../domain/entities/cart.entity';
 
 export class AddToCartDto {
+  @ApiProperty({ example: 'uuid-del-producto' })
   @IsUUID() productId!: string;
+
+  @ApiProperty({ example: 2, minimum: 1 })
   @IsInt() @Min(1) quantity!: number;
 }
 
 export class UpdateCartItemDto {
+  @ApiProperty({ example: 3, minimum: 1 })
   @IsInt() @Min(1) quantity!: number;
 }
 

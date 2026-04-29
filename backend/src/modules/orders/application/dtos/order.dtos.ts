@@ -1,12 +1,15 @@
 import { IsIn, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 import { Order } from '../../domain/entities/order.entity';
 import { OrderStatusValue } from '../../domain/value-objects/order-status.vo';
 
 export class CreateOrderDto {
+  @ApiProperty({ example: 'Av. Arce 123, La Paz, Bolivia' })
   @IsString() @IsNotEmpty() @MinLength(5) shippingAddress!: string;
 }
 
 export class UpdateOrderStatusDto {
+  @ApiProperty({ enum: ['PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED'], example: 'SHIPPED' })
   @IsString()
   @IsIn(['PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED'])
   status!: OrderStatusValue;
