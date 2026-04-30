@@ -17,9 +17,6 @@ export interface OrderConfirmationNotification {
  */
 export interface NotificationService {
   sendOrderConfirmation(notification: OrderConfirmationNotification): Promise<void>;
-  sendOrderStatusChanged(params: {
-    toEmail: string;
-    orderId: string;
-    newStatus: string;
-  }): Promise<void>;
+  sendOrderStatusChanged(params: { toEmail: string; orderId: string; newStatus: string }): Promise<void>;
+  sendPaymentProofReceived?(params: { orderId: string; totalDecimal: number; currency: string }): Promise<void>;
 }

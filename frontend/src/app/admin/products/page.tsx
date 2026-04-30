@@ -11,11 +11,12 @@ const PAGE_SIZE = 10;
 interface ProductForm {
   name: string; description: string; price: string;
   stock: string; categoryId: string; imageUrl: string;
+  images: string[];
   discountPercent: string; isActive: boolean;
 }
 const EMPTY: ProductForm = {
   name: '', description: '', price: '', stock: '',
-  categoryId: '', imageUrl: '', discountPercent: '', isActive: true,
+  categoryId: '', imageUrl: '', images: [], discountPercent: '', isActive: true,
 };
 
 function formFromProduct(p: Product): ProductForm {
@@ -23,6 +24,7 @@ function formFromProduct(p: Product): ProductForm {
     name: p.name, description: p.description,
     price: p.priceDecimal.toFixed(2), stock: p.stock.toString(),
     categoryId: p.categoryId, imageUrl: p.imageUrl ?? '',
+    images: p.images ?? [],
     discountPercent: p.discountPercent?.toString() ?? '',
     isActive: p.isActive,
   };
@@ -40,7 +42,6 @@ export default function AdminProductsPage() {
   const [showModal, setShowModal] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [form, setForm] = useState<ProductForm>(EMPTY);
-  const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,19 +68,49 @@ export default function AdminProductsPage() {
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3500); };
 
-  const openCreate = () => { setEditProduct(null); setForm(EMPTY); setPreview(null); setError(null); setShowModal(true); };
-  const openEdit = (p: Product) => { setEditProduct(p); setForm(formFromProduct(p)); setPreview(p.imageUrl); setError(null); setShowModal(true); };
+  const openCreate = () => { setEditProduct(null); setForm(EMPTY); setError(null); setShowModal(true); };
+  const openEdit = (p: Product) => { setEditProduct(p); setForm(formFromProduct(p)); setError(null); setShowModal(true); };
 
-  const handleImageFile = (file: File) => {
-    setUploading(true);
+  const uploadFile = async (file: File): Promise<string> => {
     const token = localStorage.getItem('ecommerce_access_token');
     const fd = new FormData();
     fd.append('file', file);
-    fetch(`${API_URL}/upload/image`, { method: 'POST', headers: { Authorization: `Bearer ${token ?? ''}` }, body: fd })
-      .then((r) => r.json())
-      .then(({ url }) => { setForm((f) => ({ ...f, imageUrl: url })); setPreview(url); })
-      .catch(() => setError('Error al subir imagen'))
-      .finally(() => setUploading(false));
+    const r = await fetch(`${API_URL}/upload/image`, { method: 'POST', headers: { Authorization: `Bearer ${token ?? ''}` }, body: fd });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data?.message ?? 'Error al subir imagen');
+    if (!data?.url) throw new Error('El servidor no devolvió una URL de imagen');
+    return data.url as string;
+  };
+
+  const handleAddImages = async (files: FileList) => {
+    setUploading(true);
+    try {
+      const urls = await Promise.all(Array.from(files).map(uploadFile));
+      setForm((f) => {
+        const next = [...f.images, ...urls];
+        return { ...f, images: next, imageUrl: next[0] ?? f.imageUrl };
+      });
+    } catch {
+      setError('Error al subir imágenes');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeImage = (idx: number) => {
+    setForm((f) => {
+      const next = f.images.filter((_, i) => i !== idx);
+      return { ...f, images: next, imageUrl: next[0] ?? '' };
+    });
+  };
+
+  const moveImage = (from: number, to: number) => {
+    setForm((f) => {
+      const next = [...f.images];
+      const [item] = next.splice(from, 1);
+      next.splice(to, 0, item);
+      return { ...f, images: next, imageUrl: next[0] ?? f.imageUrl };
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -89,7 +120,9 @@ export default function AdminProductsPage() {
     const body = {
       name: form.name, description: form.description,
       price: parseFloat(form.price), stock: parseInt(form.stock, 10),
-      categoryId: form.categoryId, imageUrl: form.imageUrl || undefined,
+      categoryId: form.categoryId,
+      imageUrl: form.images[0] || form.imageUrl || undefined,
+      images: form.images,
       discountPercent: form.discountPercent ? parseInt(form.discountPercent, 10) : null,
       isActive: form.isActive,
     };
@@ -306,38 +339,83 @@ export default function AdminProductsPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="px-8 py-6 space-y-5 max-h-[75vh] overflow-y-auto">
-              {/* Image upload */}
+              {/* Multi-image upload */}
               <div>
-                <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">Imagen</label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    Imágenes <span className="text-gray-400 font-normal normal-case">({form.images.length} — la primera es la principal)</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    className="flex items-center gap-1.5 rounded-lg bg-brand/10 hover:bg-brand/20 px-3 py-1.5 text-xs font-semibold text-brand transition-colors"
+                  >
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+                    Agregar fotos
+                  </button>
+                </div>
+
+                {/* Drop zone / thumbnails */}
                 <div
-                  onClick={() => fileRef.current?.click()}
                   onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) handleImageFile(f); }}
-                  className={`relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-all
-                    ${preview ? 'border-transparent p-0 h-44' : 'border-gray-200 hover:border-brand p-6 h-36 bg-gray-50 hover:bg-gray-100'}`}
+                  onDrop={(e) => { e.preventDefault(); if (e.dataTransfer.files.length) handleAddImages(e.dataTransfer.files); }}
+                  className="min-h-[100px] rounded-2xl border-2 border-dashed border-gray-200 p-3 transition-colors hover:border-brand/40"
                 >
-                  {preview ? (
-                    <>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={preview} alt="preview" className="h-44 w-full rounded-2xl object-cover" />
-                      <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/40 opacity-0 hover:opacity-100 transition-opacity">
-                        <p className="text-white text-sm font-semibold">Cambiar imagen</p>
-                      </div>
-                    </>
-                  ) : uploading ? (
-                    <div className="flex items-center gap-2 text-gray-400 text-sm">
-                      <div className="h-5 w-5 rounded-full border-2 border-gray-200 border-t-brand animate-spin" />
-                      Subiendo...
+                  {form.images.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-20 gap-1 text-gray-400">
+                      {uploading ? (
+                        <div className="flex items-center gap-2 text-sm">
+                          <div className="h-4 w-4 rounded-full border-2 border-gray-200 border-t-brand animate-spin" />
+                          Subiendo...
+                        </div>
+                      ) : (
+                        <>
+                          <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                          <p className="text-xs">Click "Agregar fotos" o arrastrá imágenes aquí</p>
+                        </>
+                      )}
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center gap-1 text-gray-400">
-                      <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 0 1 2.828 0L16 16m-2-2l1.586-1.586a2 2 0 0 1 2.828 0L20 14m-6-6h.01M6 20h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z" /></svg>
-                      <p className="text-sm">Click o arrastrá una imagen</p>
+                    <div className="flex flex-wrap gap-3">
+                      {form.images.map((url, idx) => (
+                        <div key={url + idx} className="relative group flex-shrink-0">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={url} alt={`foto ${idx + 1}`} className="h-20 w-20 rounded-xl object-cover border border-gray-200" />
+                          {idx === 0 && (
+                            <span className="absolute -top-1.5 -left-1.5 rounded-full bg-brand px-1.5 py-0.5 text-[10px] font-bold text-white">
+                              Principal
+                            </span>
+                          )}
+                          <div className="absolute inset-0 rounded-xl bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                            {idx > 0 && (
+                              <button type="button" onClick={() => moveImage(idx, idx - 1)} title="Mover izquierda"
+                                className="flex h-6 w-6 items-center justify-center rounded-full bg-white/80 hover:bg-white text-gray-700">
+                                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                              </button>
+                            )}
+                            <button type="button" onClick={() => removeImage(idx)} title="Eliminar"
+                              className="flex h-6 w-6 items-center justify-center rounded-full bg-red-500 hover:bg-red-600 text-white">
+                              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                            {idx < form.images.length - 1 && (
+                              <button type="button" onClick={() => moveImage(idx, idx + 1)} title="Mover derecha"
+                                className="flex h-6 w-6 items-center justify-center rounded-full bg-white/80 hover:bg-white text-gray-700">
+                                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      {uploading && (
+                        <div className="h-20 w-20 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center">
+                          <div className="h-5 w-5 rounded-full border-2 border-gray-200 border-t-brand animate-spin" />
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageFile(f); }} />
-                <input placeholder="O pegá URL de imagen..." value={form.imageUrl.startsWith('http://localhost') ? '' : form.imageUrl} onChange={(e) => { setForm({ ...form, imageUrl: e.target.value }); setPreview(e.target.value || null); }} className="input mt-2 text-xs" />
+                <input ref={fileRef} type="file" accept="image/*" multiple className="hidden"
+                  onChange={(e) => { if (e.target.files?.length) handleAddImages(e.target.files); e.target.value = ''; }} />
               </div>
 
               {/* Fields */}

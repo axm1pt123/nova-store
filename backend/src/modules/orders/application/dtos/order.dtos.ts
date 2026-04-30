@@ -1,4 +1,4 @@
-import { IsIn, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsIn, IsNotEmpty, IsString, IsUrl, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Order } from '../../domain/entities/order.entity';
 import { OrderStatusValue } from '../../domain/value-objects/order-status.vo';
@@ -9,10 +9,34 @@ export class CreateOrderDto {
 }
 
 export class UpdateOrderStatusDto {
-  @ApiProperty({ enum: ['PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED'], example: 'SHIPPED' })
+  @ApiProperty({ enum: ['PENDING', 'PENDING_VERIFICATION', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED'] })
   @IsString()
-  @IsIn(['PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED'])
+  @IsIn(['PENDING', 'PENDING_VERIFICATION', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED'])
   status!: OrderStatusValue;
+}
+
+export class InStoreSaleItemDto {
+  @ApiProperty({ example: 'uuid-producto' })
+  @IsString() @IsNotEmpty() productId!: string;
+
+  @ApiProperty({ example: 2 })
+  @IsNotEmpty() quantity!: number;
+}
+
+export class CreateInStoreSaleDto {
+  @ApiProperty({ type: [InStoreSaleItemDto] })
+  @IsArray() items!: InStoreSaleItemDto[];
+
+  @ApiPropertyOptional({ example: 'Juan Pérez' })
+  @IsOptional() @IsString() customerName?: string;
+
+  @ApiPropertyOptional({ example: 'Efectivo' })
+  @IsOptional() @IsString() paymentMethod?: string;
+}
+
+export class SubmitPaymentProofDto {
+  @ApiProperty({ example: 'https://res.cloudinary.com/...', description: 'URL del comprobante de pago' })
+  @IsString() @IsNotEmpty() paymentProofUrl!: string;
 }
 
 export interface OrderItemResponseDto {
@@ -34,6 +58,7 @@ export interface OrderResponseDto {
   totalDecimal: number;
   currency: string;
   shippingAddress: string;
+  paymentProofUrl: string | null;
   items: OrderItemResponseDto[];
   createdAt: Date;
   updatedAt: Date;
@@ -49,6 +74,7 @@ export class OrderMapper {
       totalDecimal: order.total.toDecimal(),
       currency: order.total.currency,
       shippingAddress: order.shippingAddress,
+      paymentProofUrl: order.paymentProofUrl,
       items: order.items.map((item) => {
         const subtotal = item.subtotal();
         return {

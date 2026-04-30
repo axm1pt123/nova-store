@@ -27,7 +27,7 @@ import {
 async function getOrCreateCart(
   carts: CartRepository,
   userId: string,
-  currency = 'USD',
+  currency = 'BOB',
 ): Promise<Cart> {
   const existing = await carts.findByUserId(userId);
   if (existing) return existing;

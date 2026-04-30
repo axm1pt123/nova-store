@@ -10,7 +10,9 @@ import {
   GetOrderByIdUseCase,
   GetUserOrdersUseCase,
   ListAllOrdersUseCase,
+  SubmitPaymentProofUseCase,
   UpdateOrderStatusUseCase,
+  VerifyPaymentUseCase,
 } from './application/use-cases/order.use-cases';
 import { OrdersController } from './infrastructure/controllers/orders.controller';
 import { PrismaOrderRepository } from './infrastructure/persistence/prisma-order.repository';
@@ -24,6 +26,8 @@ import { PrismaOrderRepository } from './infrastructure/persistence/prisma-order
     GetOrderByIdUseCase,
     UpdateOrderStatusUseCase,
     ListAllOrdersUseCase,
+    SubmitPaymentProofUseCase,
+    VerifyPaymentUseCase,
     { provide: ORDER_REPOSITORY, useClass: PrismaOrderRepository },
     { provide: NOTIFICATION_SERVICE, useClass: ConsoleNotificationService },
   ],

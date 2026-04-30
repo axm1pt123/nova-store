@@ -41,6 +41,7 @@ export interface OrderProps {
   status: OrderStatus;
   total: Money;
   shippingAddress: string;
+  paymentProofUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -82,6 +83,7 @@ export class Order {
       status: OrderStatus.pending(),
       total,
       shippingAddress: params.shippingAddress.trim(),
+      paymentProofUrl: null,
       createdAt: now,
       updatedAt: now,
     });
@@ -97,8 +99,16 @@ export class Order {
   get status(): OrderStatus { return this.props.status; }
   get total(): Money { return this.props.total; }
   get shippingAddress(): string { return this.props.shippingAddress; }
+  get paymentProofUrl(): string | null { return this.props.paymentProofUrl; }
   get createdAt(): Date { return this.props.createdAt; }
   get updatedAt(): Date { return this.props.updatedAt; }
+
+  submitPaymentProof(url: string): void {
+    if (!url) throw new BusinessRuleViolationException('Payment proof URL is required');
+    this.props.paymentProofUrl = url;
+    this.props.status = this.props.status.transitionTo('PENDING_VERIFICATION');
+    this.props.updatedAt = new Date();
+  }
 
   markAs(target: OrderStatusValue): void {
     this.props.status = this.props.status.transitionTo(target);

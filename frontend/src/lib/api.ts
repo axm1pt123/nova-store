@@ -46,6 +46,7 @@ async function request<T>(
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
+    cache: 'no-store',
   });
 
   if (response.status === 204) return undefined as T;

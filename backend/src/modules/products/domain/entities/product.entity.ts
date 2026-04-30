@@ -9,6 +9,7 @@ export interface ProductProps {
   price: Money;
   stock: number;
   imageUrl: string | null;
+  images: string[];
   discountPercent: number | null;
   categoryId: string;
   isActive: boolean;
@@ -51,6 +52,7 @@ export class Product {
   get price(): Money { return this.props.price; }
   get stock(): number { return this.props.stock; }
   get imageUrl(): string | null { return this.props.imageUrl; }
+  get images(): string[] { return this.props.images; }
   get discountPercent(): number | null { return this.props.discountPercent; }
   get categoryId(): string { return this.props.categoryId; }
   get isActive(): boolean { return this.props.isActive; }
@@ -86,7 +88,7 @@ export class Product {
     this.props.updatedAt = new Date();
   }
 
-  update(data: Partial<Pick<ProductProps, 'name' | 'description' | 'price' | 'imageUrl' | 'discountPercent' | 'categoryId' | 'isActive'>>): void {
+  update(data: Partial<Pick<ProductProps, 'name' | 'description' | 'price' | 'imageUrl' | 'images' | 'discountPercent' | 'categoryId' | 'isActive'>>): void {
     if (data.name !== undefined) {
       if (data.name.trim().length < 3) {
         throw new BusinessRuleViolationException('Product name must be at least 3 characters');
@@ -96,6 +98,7 @@ export class Product {
     if (data.description !== undefined) this.props.description = data.description;
     if (data.price !== undefined) this.props.price = data.price;
     if (data.imageUrl !== undefined) this.props.imageUrl = data.imageUrl;
+    if (data.images !== undefined) this.props.images = data.images;
     if (data.discountPercent !== undefined) this.props.discountPercent = data.discountPercent;
     if (data.categoryId !== undefined) this.props.categoryId = data.categoryId;
     if (data.isActive !== undefined) this.props.isActive = data.isActive;

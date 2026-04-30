@@ -14,6 +14,7 @@ export class ProductMapper {
       currency: product.price.currency,
       stock: product.stock,
       imageUrl: product.imageUrl,
+      images: product.images,
       discountPercent: product.discountPercent,
       categoryId: product.categoryId,
       isActive: product.isActive,

@@ -46,9 +46,7 @@ export default function CartPage() {
     setSubmitting(true);
     try {
       const order = await api.post<Order>('/orders/checkout', { shippingAddress });
-      // En modo simulado el pago se confirma al iniciar
-      await api.post('/payments/initiate', { orderId: order.id });
-      router.push('/orders');
+      router.push(`/pay/${order.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al procesar el pedido');
     } finally {

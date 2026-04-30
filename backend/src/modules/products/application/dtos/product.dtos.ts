@@ -1,11 +1,13 @@
 import { Type } from 'class-transformer';
 import {
+  IsArray,
   IsBoolean,
   IsInt,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
+  IsUrl,
   IsUUID,
   Min,
 } from 'class-validator';
@@ -29,6 +31,9 @@ export class CreateProductDto {
 
   @ApiPropertyOptional({ example: 'https://res.cloudinary.com/...' })
   @IsOptional() @IsString() imageUrl?: string;
+
+  @ApiPropertyOptional({ type: [String], description: 'URLs de imágenes adicionales del producto' })
+  @IsOptional() @IsArray() @IsString({ each: true }) images?: string[];
 
   @ApiPropertyOptional({ example: 10, description: 'Porcentaje de descuento (0-100)' })
   @IsOptional() @IsInt() @Min(0) discountPercent?: number;
@@ -55,6 +60,9 @@ export class UpdateProductDto {
 
   @ApiPropertyOptional({ example: 'https://res.cloudinary.com/...' })
   @IsOptional() @IsString() imageUrl?: string;
+
+  @ApiPropertyOptional({ type: [String], description: 'URLs de imágenes adicionales del producto' })
+  @IsOptional() @IsArray() @IsString({ each: true }) images?: string[];
 
   @ApiPropertyOptional({ example: true })
   @IsOptional() @IsBoolean() isActive?: boolean;
@@ -101,6 +109,7 @@ export interface ProductResponseDto {
   currency: string;
   stock: number;
   imageUrl: string | null;
+  images: string[];
   discountPercent: number | null;
   categoryId: string;
   isActive: boolean;

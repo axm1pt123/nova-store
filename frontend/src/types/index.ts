@@ -25,6 +25,7 @@ export interface Product {
   currency: string;
   stock: number;
   imageUrl: string | null;
+  images: string[];
   discountPercent: number | null;
   categoryId: string;
   isActive: boolean;
@@ -61,7 +62,7 @@ export interface Cart {
   currency: string;
 }
 
-export type OrderStatus = 'PENDING' | 'PAID' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+export type OrderStatus = 'PENDING' | 'PENDING_VERIFICATION' | 'PAID' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
 
 export interface Order {
   id: string;
@@ -69,6 +70,7 @@ export interface Order {
   totalDecimal: number;
   currency: string;
   shippingAddress: string;
+  paymentProofUrl: string | null;
   items: Array<{
     productName: string;
     quantity: number;

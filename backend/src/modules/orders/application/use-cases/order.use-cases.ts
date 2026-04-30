@@ -31,6 +31,7 @@ import {
   CreateOrderDto,
   OrderMapper,
   OrderResponseDto,
+  SubmitPaymentProofDto,
   UpdateOrderStatusDto,
 } from '../dtos/order.dtos';
 
@@ -187,6 +188,63 @@ export class UpdateOrderStatusUseCase {
           newStatus: order.status.value,
         })
         .catch(() => undefined);
+    }
+
+    return OrderMapper.toResponseDto(order);
+  }
+}
+
+@Injectable()
+export class SubmitPaymentProofUseCase {
+  private readonly logger = new Logger(SubmitPaymentProofUseCase.name);
+
+  constructor(
+    @Inject(ORDER_REPOSITORY) private readonly orders: OrderRepository,
+    @Inject(USER_REPOSITORY) private readonly users: UserRepository,
+    @Inject(NOTIFICATION_SERVICE) private readonly notifications: NotificationService,
+  ) {}
+
+  async execute(orderId: string, userId: string, dto: SubmitPaymentProofDto): Promise<OrderResponseDto> {
+    const order = await this.orders.findById(orderId);
+    if (!order) throw new EntityNotFoundException('Order', orderId);
+    if (order.userId !== userId) throw new UnauthorizedDomainException('You cannot modify this order');
+
+    order.submitPaymentProof(dto.paymentProofUrl);
+    await this.orders.update(order);
+
+    // Notificar al admin (no bloqueante)
+    this.notifications.sendPaymentProofReceived?.({
+      orderId: order.id,
+      totalDecimal: order.total.toDecimal(),
+      currency: order.total.currency,
+    }).catch((err: Error) => this.logger.error(`Notification error: ${err.message}`));
+
+    return OrderMapper.toResponseDto(order);
+  }
+}
+
+@Injectable()
+export class VerifyPaymentUseCase {
+  constructor(
+    @Inject(ORDER_REPOSITORY) private readonly orders: OrderRepository,
+    @Inject(USER_REPOSITORY) private readonly users: UserRepository,
+    @Inject(NOTIFICATION_SERVICE) private readonly notifications: NotificationService,
+  ) {}
+
+  async execute(orderId: string, approve: boolean): Promise<OrderResponseDto> {
+    const order = await this.orders.findById(orderId);
+    if (!order) throw new EntityNotFoundException('Order', orderId);
+
+    order.markAs(approve ? 'PAID' : 'PENDING');
+    await this.orders.update(order);
+
+    const user = await this.users.findById(order.userId);
+    if (user) {
+      this.notifications.sendOrderStatusChanged({
+        toEmail: user.email.value,
+        orderId: order.id,
+        newStatus: order.status.value,
+      }).catch(() => undefined);
     }
 
     return OrderMapper.toResponseDto(order);

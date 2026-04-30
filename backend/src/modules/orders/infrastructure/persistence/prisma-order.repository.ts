@@ -34,6 +34,7 @@ function toDomain(raw: PrismaOrderWithItems): Order {
     status: OrderStatus.create(raw.status),
     total: Money.fromCents(raw.totalCents, raw.currency),
     shippingAddress: raw.shippingAddress,
+    paymentProofUrl: raw.paymentProofUrl ?? null,
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
   });
@@ -115,6 +116,7 @@ export class PrismaOrderRepository implements OrderRepository {
       where: { id: order.id },
       data: {
         status: order.status.value as PrismaOrderStatus,
+        paymentProofUrl: order.paymentProofUrl,
         updatedAt: order.updatedAt,
       },
     });

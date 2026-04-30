@@ -17,6 +17,7 @@ enum UserRole {
 
 enum OrderStatus {
   PENDING
+  PENDING_VERIFICATION
   PAID
   SHIPPED
   DELIVERED
@@ -78,6 +79,7 @@ model Product {
   currency    String   @default("BOB")
   stock       Int      @default(0)
   imageUrl        String?
+  images          String[]
   discountPercent Int?
   isActive        Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -126,7 +128,8 @@ model Order {
   status        OrderStatus @default(PENDING)
   totalCents    Int
   currency      String      @default("USD")
-  shippingAddress String
+  shippingAddress  String
+  paymentProofUrl  String?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 

@@ -7,7 +7,7 @@ import { CartRepository } from '../../domain/repositories/cart.repository';
 
 type PrismaCartWithItems = PrismaCart & { items: PrismaCartItem[] };
 
-function toDomain(raw: PrismaCartWithItems, currency = 'USD'): Cart {
+function toDomain(raw: PrismaCartWithItems, currency = 'BOB'): Cart {
   const items = raw.items.map((it) =>
     CartItem.create({
       id: it.id,
