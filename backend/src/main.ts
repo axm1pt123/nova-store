@@ -62,7 +62,7 @@ async function bootstrap(): Promise<void> {
   app.enableCors({
     origin: isProd ? allowedOrigins : true,
     credentials: true,
-    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
 
   // Validación global
