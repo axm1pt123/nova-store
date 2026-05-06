@@ -36,4 +36,14 @@ export class ConsoleNotificationService implements NotificationService {
       `📧 [STATUS CHANGE] To: ${params.toEmail} | Order: ${params.orderId} | Status: ${params.newStatus}`,
     );
   }
+
+  async sendPaymentProofReceived(params: {
+    orderId: string;
+    totalDecimal: number;
+    currency: string;
+  }): Promise<void> {
+    this.logger.log(
+      `🧾 [PAYMENT PROOF] Order: ${params.orderId} | Total: ${params.totalDecimal} ${params.currency} — Pendiente de verificación`,
+    );
+  }
 }

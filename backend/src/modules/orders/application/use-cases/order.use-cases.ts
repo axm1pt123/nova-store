@@ -28,6 +28,7 @@ import {
   NotificationService,
 } from '../ports/notification.port';
 import {
+  CreateInStoreSaleDto,
   CreateOrderDto,
   OrderMapper,
   OrderResponseDto,
@@ -189,6 +190,58 @@ export class UpdateOrderStatusUseCase {
         })
         .catch(() => undefined);
     }
+
+    return OrderMapper.toResponseDto(order);
+  }
+}
+
+@Injectable()
+export class CreateInStoreSaleUseCase {
+  constructor(
+    @Inject(PRODUCT_REPOSITORY) private readonly products: ProductRepository,
+    @Inject(ORDER_REPOSITORY)   private readonly orders: OrderRepository,
+  ) {}
+
+  async execute(adminUserId: string, dto: CreateInStoreSaleDto): Promise<OrderResponseDto> {
+    const orderItems: OrderItem[] = [];
+    const productsToUpdate = [];
+
+    for (const line of dto.items) {
+      const product = await this.products.findById(line.productId);
+      if (!product) throw new EntityNotFoundException('Product', line.productId);
+      if (!product.hasEnoughStock(line.quantity)) {
+        throw new BusinessRuleViolationException(
+          `Stock insuficiente para "${product.name}". Disponible: ${product.stock}, solicitado: ${line.quantity}`,
+        );
+      }
+      orderItems.push(
+        OrderItem.create({
+          id: uuidv4(),
+          productId: product.id,
+          productName: product.name,
+          quantity: line.quantity,
+          unitPrice: product.price,
+        }),
+      );
+      product.decreaseStock(line.quantity);
+      productsToUpdate.push(product);
+    }
+
+    const address = `Venta en tienda${dto.customerName ? ` — ${dto.customerName}` : ''}${dto.paymentMethod ? ` (${dto.paymentMethod})` : ''}`;
+
+    const order = Order.create({
+      id: uuidv4(),
+      userId: adminUserId,
+      items: orderItems,
+      shippingAddress: address,
+    });
+
+    // Marcar como pagado de inmediato
+    order.markAs('PENDING_VERIFICATION');
+    order.markAs('PAID');
+
+    await this.orders.save(order);
+    await Promise.all(productsToUpdate.map((p) => this.products.update(p)));
 
     return OrderMapper.toResponseDto(order);
   }

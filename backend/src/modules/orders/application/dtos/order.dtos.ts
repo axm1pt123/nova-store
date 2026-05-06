@@ -1,5 +1,5 @@
-import { IsIn, IsNotEmpty, IsString, IsUrl, MinLength } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsArray, IsIn, IsInt, IsNotEmpty, IsOptional, IsString, Min, MinLength } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Order } from '../../domain/entities/order.entity';
 import { OrderStatusValue } from '../../domain/value-objects/order-status.vo';
 
@@ -20,7 +20,7 @@ export class InStoreSaleItemDto {
   @IsString() @IsNotEmpty() productId!: string;
 
   @ApiProperty({ example: 2 })
-  @IsNotEmpty() quantity!: number;
+  @IsInt() @Min(1) quantity!: number;
 }
 
 export class CreateInStoreSaleDto {

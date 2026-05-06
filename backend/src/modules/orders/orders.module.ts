@@ -6,6 +6,7 @@ import { ConsoleNotificationService } from '@shared/infrastructure/auth/console-
 import { ORDER_REPOSITORY } from './domain/repositories/order.repository';
 import { NOTIFICATION_SERVICE } from './application/ports/notification.port';
 import {
+  CreateInStoreSaleUseCase,
   CreateOrderFromCartUseCase,
   GetOrderByIdUseCase,
   GetUserOrdersUseCase,
@@ -28,6 +29,7 @@ import { PrismaOrderRepository } from './infrastructure/persistence/prisma-order
     ListAllOrdersUseCase,
     SubmitPaymentProofUseCase,
     VerifyPaymentUseCase,
+    CreateInStoreSaleUseCase,
     { provide: ORDER_REPOSITORY, useClass: PrismaOrderRepository },
     { provide: NOTIFICATION_SERVICE, useClass: ConsoleNotificationService },
   ],

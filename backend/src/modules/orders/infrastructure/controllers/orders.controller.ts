@@ -7,8 +7,9 @@ import { AuthenticatedUser, CurrentUser } from '@shared/application/decorators/c
 import { Roles } from '@shared/application/decorators/roles.decorator';
 import { JwtAuthGuard } from '@shared/application/guards/jwt-auth.guard';
 import { RolesGuard } from '@shared/application/guards/roles.guard';
-import { CreateOrderDto, SubmitPaymentProofDto, UpdateOrderStatusDto } from '../../application/dtos/order.dtos';
+import { CreateInStoreSaleDto, CreateOrderDto, SubmitPaymentProofDto, UpdateOrderStatusDto } from '../../application/dtos/order.dtos';
 import {
+  CreateInStoreSaleUseCase,
   CreateOrderFromCartUseCase,
   GetOrderByIdUseCase,
   GetUserOrdersUseCase,
@@ -31,6 +32,7 @@ export class OrdersController {
     private readonly listAll: ListAllOrdersUseCase,
     private readonly submitProof: SubmitPaymentProofUseCase,
     private readonly verifyPayment: VerifyPaymentUseCase,
+    private readonly inStoreSale: CreateInStoreSaleUseCase,
   ) {}
 
   @ApiOperation({ summary: 'Crear orden desde el carrito (checkout)' })
@@ -38,6 +40,14 @@ export class OrdersController {
   @HttpCode(HttpStatus.CREATED)
   checkout(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateOrderDto) {
     return this.createOrder.execute(user.userId, dto);
+  }
+
+  @ApiOperation({ summary: '[ADMIN] Registrar venta en tienda física (descuenta stock)' })
+  @Roles('ADMIN')
+  @Post('pos')
+  @HttpCode(HttpStatus.CREATED)
+  createInStoreSale(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateInStoreSaleDto) {
+    return this.inStoreSale.execute(user.userId, dto);
   }
 
   @ApiOperation({ summary: 'Enviar comprobante de pago' })
