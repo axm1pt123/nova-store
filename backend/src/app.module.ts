@@ -10,6 +10,7 @@ import { ProductsModule } from '@modules/products/products.module';
 import { ReportsModule } from '@modules/reports/reports.module';
 import { UsersModule } from '@modules/users/users.module';
 import { UploadModule } from '@modules/upload/upload.module';
+import { StoreConfigModule } from '@modules/store-config/store-config.module';
 import { PrismaModule } from '@shared/infrastructure/database/prisma.module';
 
 @Module({
@@ -32,6 +33,7 @@ import { PrismaModule } from '@shared/infrastructure/database/prisma.module';
     PaymentsModule,
     ReportsModule,
     UploadModule,
+    StoreConfigModule,
   ],
 })
 export class AppModule {}

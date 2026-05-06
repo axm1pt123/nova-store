@@ -154,6 +154,17 @@ model OrderItem {
   @@map("order_items")
 }
 
+model StoreConfig {
+  id          String   @id @default("singleton")
+  bankName    String   @default("Banco Mercantil Santa Cruz")
+  bankHolder  String   @default("NOVA Store SRL")
+  bankAccount String   @default("1234567890")
+  qrImageUrl  String?
+  updatedAt   DateTime @updatedAt
+
+  @@map("store_config")
+}
+
 model Payment {
   id                String          @id @default(uuid())
   orderId           String          @unique

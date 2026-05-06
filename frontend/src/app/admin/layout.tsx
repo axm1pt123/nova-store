@@ -5,12 +5,13 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/store';
 
 const NAV = [
-  { label: 'Dashboard',       href: '/admin',            icon: <GridIcon /> },
-  { label: 'Productos',       href: '/admin/products',   icon: <BoxIcon /> },
-  { label: 'Categorías',      href: '/admin/categories', icon: <TagIcon /> },
-  { label: 'Ventas',          href: '/admin/ventas',     icon: <ListIcon /> },
-  { label: 'Punto de Venta',  href: '/admin/pos',        icon: <PosIcon /> },
-  { label: 'Usuarios',        href: '/admin/users',      icon: <UsersIcon /> },
+  { label: 'Dashboard',       href: '/admin',                         icon: <GridIcon /> },
+  { label: 'Productos',       href: '/admin/products',                icon: <BoxIcon /> },
+  { label: 'Categorías',      href: '/admin/categories',              icon: <TagIcon /> },
+  { label: 'Ventas',          href: '/admin/ventas',                  icon: <ListIcon /> },
+  { label: 'Punto de Venta',  href: '/admin/pos',                     icon: <PosIcon /> },
+  { label: 'Usuarios',        href: '/admin/users',                   icon: <UsersIcon /> },
+  { label: 'Config. de Pago', href: '/admin/configuracion-pago',      icon: <PayConfigIcon /> },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -181,6 +182,13 @@ function StoreIcon() {
   return (
     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-8 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" />
+    </svg>
+  );
+}
+function PayConfigIcon() {
+  return (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
     </svg>
   );
 }

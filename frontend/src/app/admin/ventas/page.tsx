@@ -63,6 +63,63 @@ export default function AdminVentasPage() {
     setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status } : o)));
   };
 
+  const printInvoice = (order: Order) => {
+    const date = new Date(order.createdAt).toLocaleDateString('es', { day: '2-digit', month: 'long', year: 'numeric' });
+    const rows = order.items.map((item) => `
+      <tr>
+        <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0">${item.productName}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;text-align:center">${item.quantity}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;text-align:right">${fmtPrice(item.unitPriceDecimal, order.currency)}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:600">${fmtPrice(item.subtotalDecimal, order.currency)}</td>
+      </tr>`).join('');
+
+    const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+      <title>Factura #${order.id.slice(0, 8).toUpperCase()}</title>
+      <style>
+        body{font-family:system-ui,sans-serif;margin:0;padding:32px;color:#1a1a1a;font-size:14px}
+        .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px}
+        .brand{font-size:24px;font-weight:900;letter-spacing:-0.5px}
+        .meta{text-align:right;color:#666;font-size:12px;line-height:1.8}
+        h2{font-size:13px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:1px;margin:24px 0 8px}
+        table{width:100%;border-collapse:collapse}
+        th{padding:8px 12px;text-align:left;font-size:11px;text-transform:uppercase;color:#888;background:#f9f9f9;font-weight:700}
+        th:nth-child(2){text-align:center}th:nth-child(3),th:nth-child(4){text-align:right}
+        .total-row{display:flex;justify-content:flex-end;margin-top:16px}
+        .total-box{background:#0f172a;color:#fff;border-radius:12px;padding:12px 24px;font-size:18px;font-weight:900}
+        .status{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;background:#dcfce7;color:#166534}
+        .address{color:#444;font-size:13px}
+        @media print{body{padding:20px}}
+      </style></head><body>
+      <div class="header">
+        <div>
+          <div class="brand">NOVA Store</div>
+          <div style="color:#888;font-size:12px;margin-top:4px">Comprobante de venta</div>
+        </div>
+        <div class="meta">
+          <div><strong>Factura #${order.id.slice(0, 8).toUpperCase()}</strong></div>
+          <div>Fecha: ${date}</div>
+          <div>Estado: <span class="status">${STATUS_CONFIG[order.status].label}</span></div>
+        </div>
+      </div>
+      <h2>Dirección de envío</h2>
+      <p class="address">${order.shippingAddress}</p>
+      <h2>Productos</h2>
+      <table>
+        <thead><tr>
+          <th>Producto</th><th>Cant.</th><th>P. Unit.</th><th>Subtotal</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="total-row">
+        <div class="total-box">Total: ${fmtPrice(order.totalDecimal, order.currency)}</div>
+      </div>
+      <script>window.onload=()=>{window.print();}<\/script>
+    </body></html>`;
+
+    const win = window.open('', '_blank', 'width=800,height=600');
+    if (win) { win.document.write(html); win.document.close(); }
+  };
+
   if (user?.role !== 'ADMIN') return <div className="p-8"><p className="text-red-500">Acceso denegado.</p></div>;
 
   const filtered = orders.filter((o) => {
@@ -226,14 +283,25 @@ export default function AdminVentasPage() {
                         <div className="rounded-xl bg-white border border-gray-100 p-4 space-y-3">
                           <div className="flex items-center justify-between">
                             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Items del pedido</p>
-                            <select value={order.status} onChange={(e) => handleStatusChange(order.id, e.target.value as OrderStatus)}
-                              className="input w-44 text-xs py-1.5"
-                              disabled={VALID_NEXT[order.status].length === 0}>
-                              <option value={order.status}>{STATUS_CONFIG[order.status].label} (actual)</option>
-                              {VALID_NEXT[order.status].map((s) => (
-                                <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>
-                              ))}
-                            </select>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => printInvoice(order)}
+                                className="flex items-center gap-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors"
+                              >
+                                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                </svg>
+                                Imprimir factura
+                              </button>
+                              <select value={order.status} onChange={(e) => handleStatusChange(order.id, e.target.value as OrderStatus)}
+                                className="input w-44 text-xs py-1.5"
+                                disabled={VALID_NEXT[order.status].length === 0}>
+                                <option value={order.status}>{STATUS_CONFIG[order.status].label} (actual)</option>
+                                {VALID_NEXT[order.status].map((s) => (
+                                  <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>
+                                ))}
+                              </select>
+                            </div>
                           </div>
                           <table className="w-full text-sm">
                             <thead><tr className="text-left text-xs text-gray-400">

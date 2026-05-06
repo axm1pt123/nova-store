@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { useAuth, useCart } from '@/lib/store';
+import { fmtPrice } from '@/lib/price';
 import { Order } from '@/types';
 
 export default function CartPage() {
@@ -63,7 +64,7 @@ export default function CartPage() {
             <div className="flex-1">
               <p className="font-medium text-sm text-gray-700">Producto: {item.productId.slice(0, 8)}…</p>
               <p className="text-sm text-gray-500">
-                ${item.unitPriceDecimal.toFixed(2)} c/u
+                {fmtPrice(item.unitPriceDecimal)} c/u
               </p>
             </div>
             <input
@@ -74,7 +75,7 @@ export default function CartPage() {
               className="input w-20 mr-3"
             />
             <span className="font-bold w-20 text-right">
-              ${item.subtotalDecimal.toFixed(2)}
+              {fmtPrice(item.subtotalDecimal)}
             </span>
             <button
               onClick={() => removeItem(item.productId)}
@@ -93,7 +94,7 @@ export default function CartPage() {
         <h2 className="font-semibold mb-4">Resumen</h2>
         <div className="flex justify-between mb-4 text-lg">
           <span>Total</span>
-          <span className="font-bold">${cart.totalDecimal.toFixed(2)}</span>
+          <span className="font-bold">{fmtPrice(cart.totalDecimal)}</span>
         </div>
         <form onSubmit={handleCheckout} className="space-y-3">
           <div>

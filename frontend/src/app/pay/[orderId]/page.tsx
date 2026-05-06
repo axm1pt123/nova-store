@@ -6,17 +6,26 @@ import { api } from '@/lib/api';
 import { fmtPrice } from '@/lib/price';
 import { Order } from '@/types';
 
-const API_URL     = process.env.NEXT_PUBLIC_API_URL     ?? 'http://localhost:3001/api/v1';
-const BANK_QR_URL = process.env.NEXT_PUBLIC_BANK_QR_URL ?? '';
-const BANK_NAME   = process.env.NEXT_PUBLIC_BANK_NAME   ?? 'Banco Mercantil Santa Cruz';
-const BANK_HOLDER = process.env.NEXT_PUBLIC_BANK_HOLDER ?? 'NOVA Store SRL';
-const BANK_ACCOUNT= process.env.NEXT_PUBLIC_BANK_ACCOUNT?? '1234567890';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api/v1';
+
+interface StoreConfig {
+  bankName: string;
+  bankHolder: string;
+  bankAccount: string;
+  qrImageUrl: string | null;
+}
 
 export default function PayPage() {
   const { orderId } = useParams<{ orderId: string }>();
   const router = useRouter();
 
   const [order, setOrder]           = useState<Order | null>(null);
+  const [storeConfig, setStoreConfig] = useState<StoreConfig>({
+    bankName: 'Banco Mercantil Santa Cruz',
+    bankHolder: 'NOVA Store SRL',
+    bankAccount: '1234567890',
+    qrImageUrl: null,
+  });
   const [loading, setLoading]       = useState(true);
   const [uploading, setUploading]   = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -29,10 +38,10 @@ export default function PayPage() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    api.get<Order>(`/orders/${orderId}`)
-      .then(setOrder)
-      .catch(() => router.replace('/orders'))
-      .finally(() => setLoading(false));
+    Promise.all([
+      api.get<Order>(`/orders/${orderId}`).then(setOrder).catch(() => router.replace('/orders')),
+      api.get<StoreConfig>('/store-config').then(setStoreConfig).catch(() => {}),
+    ]).finally(() => setLoading(false));
   }, [orderId, router]);
 
   const uploadProof = async (file: File) => {
@@ -159,10 +168,10 @@ export default function PayPage() {
           {/* Tab QR */}
           {tab === 'qr' && (
             <div className="flex flex-col items-center gap-4">
-              {BANK_QR_URL ? (
+              {storeConfig.qrImageUrl ? (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={BANK_QR_URL} alt="QR de pago"
+                  <img src={storeConfig.qrImageUrl} alt="QR de pago"
                     className="h-56 w-56 object-contain rounded-xl border border-gray-100" />
                   <p className="text-xs text-gray-400 text-center leading-relaxed">
                     Abrí tu app bancaria → <strong>Pagos</strong> → <strong>Escanear QR</strong><br />
@@ -192,22 +201,22 @@ export default function PayPage() {
               <div className="rounded-xl bg-gray-50 px-4 py-3 flex justify-between items-center">
                 <div>
                   <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">Banco</p>
-                  <p className="font-semibold text-brand text-sm">{BANK_NAME}</p>
+                  <p className="font-semibold text-brand text-sm">{storeConfig.bankName}</p>
                 </div>
               </div>
               <div className="rounded-xl bg-gray-50 px-4 py-3 flex justify-between items-center">
                 <div>
                   <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">Titular</p>
-                  <p className="font-semibold text-brand text-sm">{BANK_HOLDER}</p>
+                  <p className="font-semibold text-brand text-sm">{storeConfig.bankHolder}</p>
                 </div>
               </div>
               <div className="rounded-xl bg-brand/5 border border-brand/20 px-4 py-3 flex justify-between items-center">
                 <div>
                   <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">Número de cuenta</p>
-                  <p className="font-black text-2xl text-brand tracking-wider">{BANK_ACCOUNT}</p>
+                  <p className="font-black text-2xl text-brand tracking-wider">{storeConfig.bankAccount}</p>
                 </div>
                 <button
-                  onClick={() => { navigator.clipboard.writeText(BANK_ACCOUNT); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+                  onClick={() => { navigator.clipboard.writeText(storeConfig.bankAccount); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
                   className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-bold transition-colors flex-shrink-0
                     ${copied ? 'bg-green-100 text-green-700' : 'bg-brand text-white hover:bg-brand/90'}`}
                 >
