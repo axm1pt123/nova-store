@@ -1,0 +1,4 @@
+interface:
+  display_name: "NOVA Store Reports"
+  short_description: "Reportes y metricas admin"
+  default_prompt: "Use $nova-store-reports para trabajar en reportes administrativos de NOVA Store."

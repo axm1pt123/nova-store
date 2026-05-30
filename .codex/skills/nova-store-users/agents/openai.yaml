@@ -1,0 +1,4 @@
+interface:
+  display_name: "NOVA Store Users"
+  short_description: "Auth, perfiles, roles y usuarios"
+  default_prompt: "Use $nova-store-users para trabajar en autenticacion, perfiles o usuarios de NOVA Store."

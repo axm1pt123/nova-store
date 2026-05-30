@@ -1,0 +1,4 @@
+interface:
+  display_name: "NOVA Store Upload"
+  short_description: "Imagenes, Cloudinary y uploads"
+  default_prompt: "Use $nova-store-upload para trabajar en subida de imagenes de NOVA Store."

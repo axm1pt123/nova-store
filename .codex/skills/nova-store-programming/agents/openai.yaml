@@ -1,0 +1,4 @@
+interface:
+  display_name: "NOVA Store Programming"
+  short_description: "Guia IA para desarrollar NOVA Store"
+  default_prompt: "Use $nova-store-programming para continuar desarrollando NOVA Store respetando su arquitectura."

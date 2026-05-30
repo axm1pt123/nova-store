@@ -1,0 +1,4 @@
+interface:
+  display_name: "NOVA Store Orders"
+  short_description: "Checkout, ordenes y POS"
+  default_prompt: "Use $nova-store-orders para trabajar en checkout, ordenes o ventas POS de NOVA Store."

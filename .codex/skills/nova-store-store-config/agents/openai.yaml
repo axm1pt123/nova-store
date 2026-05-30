@@ -1,0 +1,4 @@
+interface:
+  display_name: "NOVA Store Store Config"
+  short_description: "Datos bancarios y QR de pago"
+  default_prompt: "Use $nova-store-store-config para trabajar en datos bancarios o QR de pago de NOVA Store."

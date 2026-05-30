@@ -1,0 +1,4 @@
+interface:
+  display_name: "NOVA Store Payments"
+  short_description: "Pagos, gateways y confirmacion"
+  default_prompt: "Use $nova-store-payments para trabajar en pagos o gateways de NOVA Store."

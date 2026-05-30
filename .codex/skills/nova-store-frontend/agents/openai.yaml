@@ -1,0 +1,4 @@
+interface:
+  display_name: "NOVA Store Frontend"
+  short_description: "Next.js, UI, stores y tipos"
+  default_prompt: "Use $nova-store-frontend para trabajar en paginas, componentes o estado del frontend de NOVA Store."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "NOVA Store Cart"
+  short_description: "Carrito, cantidades y totales"
+  default_prompt: "Use $nova-store-cart para trabajar en el carrito de compras de NOVA Store."

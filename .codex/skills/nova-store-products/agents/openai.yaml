@@ -1,0 +1,4 @@
+interface:
+  display_name: "NOVA Store Products"
+  short_description: "Catalogo, categorias y productos"
+  default_prompt: "Use $nova-store-products para trabajar en catalogo, categorias o productos de NOVA Store."
